@@ -14,9 +14,10 @@ import (
 type sessionState int
 
 const (
-	stateInput sessionState = iota // 0: Eingabe des Pfades
-	stateMenu                      // 1: Das Auswahlmenü
-	test
+	fileOrganize sessionState = iota // 0: Eingabe des Pfades
+	stateMenu                        // 1: Das Auswahlmenü
+	imageSort
+	imageCompress
 )
 
 type model struct {
@@ -31,10 +32,7 @@ type model struct {
 }
 
 const (
-	progressBarWidth  = 71
-	progressFullChar  = "█"
-	progressEmptyChar = "░"
-	dotChar           = " • "
+	dotChar = " • "
 )
 
 var (
@@ -42,18 +40,12 @@ var (
 	subtleStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
 	ticksStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("79"))
 	checkboxStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("212"))
-	progressEmpty = subtleStyle.Render(progressEmptyChar)
 	dotStyle      = lipgloss.NewStyle().Foreground(lipgloss.Color("236")).Render(dotChar)
 	mainStyle     = lipgloss.NewStyle().MarginLeft(2)
 )
 
 func (m model) Init() tea.Cmd {
-	// Das Textfeld braucht einen "Blink"-Befehl für den Cursor beim Start
-	if m.state == stateInput {
-		return textinput.Blink
-	}
-
-	return m.spinner.Tick
+	return nil
 }
 
 func initialModel() model {
@@ -93,7 +85,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch m.state {
 
 	// === ZUSTAND 1: PFAD EINGEBEN ===
-	case stateInput:
+	case fileOrganize:
 		switch msg := msg.(type) {
 		case tea.KeyMsg:
 			switch msg.Type {
@@ -145,14 +137,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.status = "✅  Erfolg! Verzeichnis organisiert."
 					}
 				} else if m.cursor == 1 {
-					m.state = test
+					m.state = imageSort
 					return m, m.spinner.Tick
 				} else {
 					return m, tea.Quit
 				}
 			}
 		}
-	case test:
+	case imageSort:
 		var cmd tea.Cmd
 
 		// Prüfen, ob wir abbrechen wollen
@@ -176,7 +168,7 @@ func (m model) View() string {
 	s := "\n  ✨ Ordi - Der File Organizer ✨\n\n"
 
 	// Ansicht-Weiche: Was zeigen wir an?
-	if m.state == stateInput {
+	if m.state == fileOrganize {
 		s += subtleStyle.Render("  Bitte gib den Pfad zum Ordner ein:\n\n")
 		s += fmt.Sprintf("  %s\n\n", m.textInput.View()) // Das Textfeld rendern
 
@@ -185,7 +177,7 @@ func (m model) View() string {
 		}
 		s += "  (Drücke Enter zum Bestätigen, Ctrl+C zum Beenden)\n"
 
-	} else if m.state == test {
+	} else if m.state == imageSort {
 		s += fmt.Sprintf("\n\n   %s Loading forever...press q to quit\n\n", m.spinner.View())
 		s += "  Bilder sortieren - Funktion noch in Arbeit!\n\n"
 	} else {
