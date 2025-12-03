@@ -1,16 +1,15 @@
 package organizer
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 )
 
-type Cleaner struct {
-}
-
-func organize(dirPath string) error {
+func Organize(dirPath string) error {
 	files, err := readFiles(dirPath)
 	if err != nil {
+
 		return err
 	}
 
@@ -29,8 +28,11 @@ func organize(dirPath string) error {
 		err = moveFile(srcPath, destDir)
 		if err != nil {
 			return err
+		} else {
+			fmt.Printf("Verschoben: %s -> %s\n", file.Name(), category)
 		}
 	}
+
 	return nil
 }
 
