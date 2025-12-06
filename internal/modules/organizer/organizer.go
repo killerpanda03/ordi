@@ -1,7 +1,6 @@
 package organizer
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 )
@@ -28,8 +27,6 @@ func Organize(dirPath string) error {
 		err = moveFile(srcPath, destDir)
 		if err != nil {
 			return err
-		} else {
-			fmt.Printf("Verschoben: %s -> %s\n", file.Name(), category)
 		}
 	}
 

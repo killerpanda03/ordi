@@ -39,7 +39,7 @@ func (m Model) View() string {
 	switch m.State {
 	case stateInput: // Initial State
 		viewContent += lipgloss.JoinVertical(lipgloss.Left,
-			"Bitte gib den Pfad zum Ordner ein:\n",
+			"Bitte gib den Pfad zum Ordner ein: ",
 			m.styles.InputField.Render(m.TextInput.View()),
 			"(Enter: Bestätigen, Esc: Zurück)")
 		if m.Err != nil {
@@ -47,17 +47,16 @@ func (m Model) View() string {
 		}
 
 	case stateProcessing: // Loading State
-		viewContent += fmt.Sprintf("%s Organisiere Dateien in %s...\n\n", m.Spinner.View(), styles.Keyword.Render(m.Path))
-		viewContent += "(Bitte warten...)\n"
+		viewContent += fmt.Sprintf("\n\n   %s Organisiere Dateien in %s...\n\n", m.Spinner.View(), m.styles.KeyWord.Render(m.Path))
 
 	case stateFinished: // Success / Error State
 		if m.Err != nil {
 			// Fehler anzeigen
-			viewContent += fmt.Sprintf("❌ Organisation in %s fehlgeschlagen!\n", styles.Keyword.Render(m.Path))
+			viewContent += fmt.Sprintf("❌ Organisation in %s fehlgeschlagen!\n", m.styles.KeyWord.Render(m.Path))
 			viewContent += fmt.Sprintf("Fehler: %v\n\n", m.Err)
 		} else {
 			// Erfolg anzeigen
-			viewContent += styles.Keyword.Render(m.Result) + "\n\n"
+			viewContent += fmt.Sprintf("✅ Organisation in %s erfolgreich abgeschlossen!\n\n", m.styles.KeyWord.Render(m.Path))
 		}
 		viewContent += "(Drücke Enter oder Esc, um zum Menü zurückzukehren)"
 	}

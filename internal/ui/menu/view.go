@@ -5,14 +5,16 @@ import (
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 func (m Model) View() string {
-	s := "\n"
+
+	s := lipgloss.JoinVertical(lipgloss.Center, "Wähle eine Option: \n")
 	for i, choice := range m.choices {
-		cursor := " "
+		cursor := "[ ]"
 		if m.cursor == i {
-			cursor = ">"
+			cursor = styles.Cursor.Render("[X]")
 			choice = styles.Cursor.Render(choice)
 		}
 		s += fmt.Sprintf("  %s %s\n", cursor, choice)

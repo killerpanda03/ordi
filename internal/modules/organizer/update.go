@@ -3,6 +3,7 @@ package organizer
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
@@ -11,6 +12,7 @@ import (
 func StartOrganizing(path string) tea.Cmd {
 	return func() tea.Msg {
 		// Die blockierende Funktion Organize wird hier aufgerufen
+		time.Sleep(time.Millisecond * 500)
 		err := Organize(path)
 
 		if err != nil {
@@ -77,8 +79,6 @@ func (m Model) updateProcessing(msg tea.Msg) (Model, tea.Cmd) {
 
 	case ProcessSuccessMsg:
 		m.State = stateFinished
-		m.Result = fmt.Sprintf("Organisation von '%s' erfolgreich abgeschlossen. 🎉", msg.Path)
-		m.Path = msg.Path
 		return m, nil
 
 	case ProcessErrorMsg:

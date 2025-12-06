@@ -40,9 +40,10 @@ func New() Model {
 	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
 
 	ti := textinput.New()
+	ti.Placeholder = "Pfad zum Ordner eingeben"
 	ti.Focus()
-	ti.Placeholder = "/pfad/zum/ordner"
-	ti.CharLimit = 156
+	ti.CharLimit = 256
+	ti.Width = 80
 
 	return Model{
 		TextInput: ti,

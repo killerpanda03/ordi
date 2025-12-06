@@ -1,7 +1,7 @@
 package app
 
 func (m Model) View() string {
-	s := "\n Ordi - Der File Organizer \n"
+	s := ""
 
 	switch m.state {
 	case stateMenu:
