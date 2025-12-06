@@ -9,7 +9,7 @@ type Model struct {
 
 func New() Model {
 	return Model{
-		choices: []string{"Ein Verzeichnis organisieren", "Bilder sortieren", "Bild komprimieren", "Beenden"},
+		choices: []string{"Ein Verzeichnis organisieren", "Bilder sortieren", "Dateien komprimieren", "Beenden"},
 		cursor:  0,
 	}
 }

@@ -8,8 +8,8 @@ func (m Model) View() string {
 		s += m.menu.View()
 	case stateOrganize:
 		s += m.organizer.View()
-	case stateImageSort:
-		s += "Feature kommt bald..."
+	case stateCompress:
+		s += m.compressor.View()
 	}
 
 	return s

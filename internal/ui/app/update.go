@@ -1,6 +1,7 @@
 package app
 
 import (
+	"example/ordi/internal/modules/compressor"
 	"example/ordi/internal/modules/organizer"
 	"example/ordi/internal/ui/menu"
 
@@ -29,7 +30,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 				m.organizer = organizer.New()
 				return m, tea.Batch(m.organizer.Init(), m.organizer.TextInput.Focus())
-			case 1:
+			case 2:
+				m.state = stateCompress
+				m.compressor = compressor.New()
+				return m, m.compressor.Init()
 			case 3:
 				return m, tea.Quit
 			}
