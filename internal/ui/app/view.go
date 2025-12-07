@@ -10,6 +10,8 @@ func (m Model) View() string {
 		s += m.organizer.View()
 	case stateCompress:
 		s += m.compressor.View()
+	case stateDeduplicate:
+		s += m.deduplicator.View()
 	}
 
 	return s

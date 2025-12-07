@@ -2,6 +2,7 @@ package app
 
 import (
 	"example/ordi/internal/modules/compressor"
+	"example/ordi/internal/modules/deduplicator"
 	"example/ordi/internal/modules/organizer"
 	"example/ordi/internal/ui/menu"
 
@@ -30,11 +31,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 				m.organizer = organizer.New()
 				return m, tea.Batch(m.organizer.Init(), m.organizer.TextInput.Focus())
+			case 1:
+				m.state = stateDeduplicate
+				m.deduplicator = deduplicator.New()
+				return m, m.deduplicator.Init()
 			case 2:
 				m.state = stateCompress
 				m.compressor = compressor.New()
 				return m, m.compressor.Init()
 			case 3:
+
+			case 4:
 				return m, tea.Quit
 			}
 		}
@@ -47,6 +54,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if _, ok := msg.(organizer.BackMsg); ok {
 			m.state = stateMenu
 			m.organizer = organizer.New()
+			return m, nil
+		}
+
+	case stateDeduplicate:
+		newDedup, newCmd := m.deduplicator.Update(msg)
+		m.deduplicator = newDedup.(deduplicator.Model)
+		cmd = newCmd
+
+		if _, ok := msg.(deduplicator.BackMsg); ok {
+			m.state = stateMenu
+			m.deduplicator = deduplicator.New()
 			return m, nil
 		}
 	}

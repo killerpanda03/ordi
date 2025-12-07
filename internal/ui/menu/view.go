@@ -10,11 +10,12 @@ import (
 
 func (m Model) View() string {
 
-	s := lipgloss.JoinVertical(lipgloss.Center, "Wähle eine Option: \n")
+	s := "\n"
+	s += lipgloss.JoinVertical(lipgloss.Center, "Wähle eine Option: \n\n")
 	for i, choice := range m.choices {
-		cursor := "[ ]"
+		cursor := ""
 		if m.cursor == i {
-			cursor = styles.Cursor.Render("[X]")
+			cursor = styles.Cursor.Render(">")
 			choice = styles.Cursor.Render(choice)
 		}
 		s += fmt.Sprintf("  %s %s\n", cursor, choice)
