@@ -1,65 +1,161 @@
 package organizer
 
 import (
-	"example/ordi/internal/ui/styles"
 	"fmt"
+	"strings"
 
-	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
-// func (m Model) View() string {
-// 	switch m.State {
-// 	case stateInput:
-// 		s := styles.Subtle.Render("  Bitte gib den Pfad zum Ordner ein:\n\n")
-// 		s += fmt.Sprintf("%s\n\n", m.TextInput.View())
-// 		if m.Err != nil {
-// 			s += fmt.Sprintf("  ❌ %v\n", m.Err)
-// 		}
-// 		s += "  (Enter: Bestätigen, Esc: Zurück)\n"
-// 		return s
+var (
+	titleStyle = lipgloss.NewStyle().
+		Bold(true).
+		Foreground(lipgloss.Color("205")).
+		MarginBottom(1)
 
-//		case stateProcessing:
-//			s := fmt.Sprintf("\n  %s Organisiere Dateien in %s...\n\n", m.Spinner.View(), styles.Keyword.Render(m.Path))
-//			s += "  (Dies dauert einen Moment)\n"
-//			return s
-//		}
-//		return ""
-//	}
+	helpStyle = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("241")).
+		MarginTop(1)
+
+	errorStyle = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("196")).
+		Bold(true)
+
+	successStyle = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("42")).
+		Bold(true)
+
+	infoStyle = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("86"))
+
+	categoryStyle = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("63")).
+		Bold(true)
+
+	groupStyle = lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color("63")).
+		Padding(0, 1).
+		MarginBottom(1)
+)
+
 func (m Model) Init() tea.Cmd {
-
-	return textinput.Blink
+	return nil
 }
 
 func (m Model) View() string {
-	var viewContent string
-	viewContent += "\n"
+	var b strings.Builder
 
 	switch m.State {
-	case stateInput: // Initial State
-		viewContent += lipgloss.JoinVertical(lipgloss.Left,
-			"Bitte gib den Pfad zum Ordner ein: ",
-			m.styles.InputField.Render(m.TextInput.View()),
-			"(Enter: Bestätigen, Esc: Zurück)")
+	case stateInput:
+		b.WriteString(titleStyle.Render("📂 Verzeichnis organisieren"))
+		b.WriteString("\n\n")
+		b.WriteString("Geben Sie den Pfad zum Ordner ein:\n\n")
+		b.WriteString(m.TextInput.View())
+		b.WriteString("\n\n")
 		if m.Err != nil {
-			viewContent += fmt.Sprintf("❌ %v\n\n", m.Err)
+			b.WriteString(errorStyle.Render(fmt.Sprintf("⚠️  %v", m.Err)))
+			b.WriteString("\n\n")
+		}
+		b.WriteString(helpStyle.Render("Enter = Scannen • Esc = Zurück zum Menü"))
+
+	case stateScanning:
+		b.WriteString(titleStyle.Render("🔍 Scanne Dateien..."))
+		b.WriteString("\n\n")
+		b.WriteString(fmt.Sprintf("%s Durchsuche Verzeichnis: %s\n", m.Spinner.View(), m.Path))
+		b.WriteString("\n")
+		b.WriteString(helpStyle.Render("Bitte warten..."))
+
+	case statePreview:
+		b.WriteString(titleStyle.Render("📋 Vorschau"))
+		b.WriteString("\n\n")
+
+		// Count files per category
+		categoryCount := make(map[string]int)
+		for _, file := range m.files {
+			categoryCount[file.Category]++
 		}
 
-	case stateProcessing: // Loading State
-		viewContent += fmt.Sprintf("\n\n   %s Organisiere Dateien in %s...\n\n", m.Spinner.View(), m.styles.KeyWord.Render(m.Path))
+		b.WriteString(infoStyle.Render(fmt.Sprintf("Gefundene Dateien: %d\n", m.totalFiles)))
+		b.WriteString("\n")
 
-	case stateFinished: // Success / Error State
+		// Show category breakdown in fixed order
+		stats := []string{"Kategorien:"}
+		categoryOrder := []string{"Bilder", "Videos", "Musik", "Dokumente", "Archive", "Sonstiges"}
+		for _, category := range categoryOrder {
+			if count, exists := categoryCount[category]; exists {
+				icon := getCategoryIcon(category)
+				stats = append(stats, fmt.Sprintf("  %s %-12s %d Dateien", icon, category+":", count))
+			}
+		}
+		b.WriteString(categoryStyle.Render(lipgloss.JoinVertical(lipgloss.Left, stats...)))
+		b.WriteString("\n\n")
+
+		// Show sample files (first 10)
+		if len(m.files) > 0 {
+			b.WriteString("Beispiel-Dateien:\n")
+			maxShow := 10
+			if len(m.files) < maxShow {
+				maxShow = len(m.files)
+			}
+
+			var samples []string
+			for i := 0; i < maxShow; i++ {
+				file := m.files[i]
+				samples = append(samples, fmt.Sprintf("  %s %s → %s", file.Icon, truncate(file.Name, 40), file.Category))
+			}
+
+			if len(m.files) > maxShow {
+				samples = append(samples, fmt.Sprintf("  ... und %d weitere", len(m.files)-maxShow))
+			}
+
+			b.WriteString(groupStyle.Render(lipgloss.JoinVertical(lipgloss.Left, samples...)))
+		}
+
+		b.WriteString("\n")
+		b.WriteString(helpStyle.Render("Enter = Organisieren starten • Esc = Abbrechen"))
+
+	case stateOrganizing:
+		b.WriteString(titleStyle.Render("📦 Organisiere Dateien..."))
+		b.WriteString("\n\n")
+		b.WriteString(fmt.Sprintf("%s Verschiebe Dateien in Kategorien...\n", m.Spinner.View()))
+		b.WriteString("\n")
+		b.WriteString(helpStyle.Render("Bitte warten..."))
+
+	case stateFinished:
 		if m.Err != nil {
-			// Fehler anzeigen
-			viewContent += fmt.Sprintf("❌ Organisation in %s fehlgeschlagen!\n", m.styles.KeyWord.Render(m.Path))
-			viewContent += fmt.Sprintf("Fehler: %v\n\n", m.Err)
+			b.WriteString(titleStyle.Render("❌ Fehler"))
+			b.WriteString("\n\n")
+			b.WriteString(errorStyle.Render(fmt.Sprintf("Fehler: %v", m.Err)))
 		} else {
-			// Erfolg anzeigen
-			viewContent += fmt.Sprintf("✅ Organisation in %s erfolgreich abgeschlossen!\n\n", m.styles.KeyWord.Render(m.Path))
+			b.WriteString(titleStyle.Render("✅ Organisation abgeschlossen"))
+			b.WriteString("\n\n")
+			b.WriteString(successStyle.Render(fmt.Sprintf("✓ %d Dateien erfolgreich organisiert!", m.stats.TotalMoved)))
+			b.WriteString("\n\n")
+
+			if len(m.stats.Categories) > 0 {
+				stats := []string{"Dateien pro Kategorie:"}
+				categoryOrder := []string{"Bilder", "Videos", "Musik", "Dokumente", "Archive", "Sonstiges"}
+				for _, category := range categoryOrder {
+					if count, exists := m.stats.Categories[category]; exists {
+						icon := getCategoryIcon(category)
+						stats = append(stats, fmt.Sprintf("  %s %-12s %d Dateien", icon, category+":", count))
+					}
+				}
+				b.WriteString(infoStyle.Render(lipgloss.JoinVertical(lipgloss.Left, stats...)))
+			}
 		}
-		viewContent += "(Drücke Enter oder Esc, um zum Menü zurückzukehren)"
+		b.WriteString("\n\n")
+		b.WriteString(helpStyle.Render("Enter = Zurück zum Menü"))
 	}
 
-	return styles.Main.Render(viewContent) + "\n"
+	return b.String()
+}
+
+func truncate(s string, maxLen int) string {
+	if len(s) <= maxLen {
+		return s
+	}
+	return s[:maxLen-3] + "..."
 }

@@ -5,11 +5,15 @@ import (
 	"path/filepath"
 )
 
-func Organize(dirPath string) error {
+func Organize(dirPath string) (CategoryStats, error) {
 	files, err := readFiles(dirPath)
 	if err != nil {
+		return CategoryStats{}, err
+	}
 
-		return err
+	stats := CategoryStats{
+		Categories: make(map[string]int),
+		TotalMoved: 0,
 	}
 
 	for _, file := range files {
@@ -17,38 +21,64 @@ func Organize(dirPath string) error {
 			continue
 		}
 		category := getCategory(file.Name())
-		err := createDir(dirPath, category)
+		err := createDir(dirPath, category.Name)
 		if err != nil {
-			return err
+			return stats, err
 		}
 		srcPath := filepath.Join(dirPath, file.Name())
-		destDir := filepath.Join(dirPath, category)
+		destDir := filepath.Join(dirPath, category.Name)
 
 		err = moveFile(srcPath, destDir)
 		if err != nil {
-			return err
+			return stats, err
 		}
+
+		stats.Categories[category.Name]++
+		stats.TotalMoved++
 	}
 
-	return nil
+	return stats, nil
 }
 
-func getCategory(fileName string) string {
+type Category struct {
+	Name string
+	Icon string
+}
+
+var categories = map[string]Category{
+	"images": {Name: "Bilder", Icon: "📷"},
+	"videos": {Name: "Videos", Icon: "🎬"},
+	"music":  {Name: "Musik", Icon: "🎵"},
+	"docs":   {Name: "Dokumente", Icon: "📄"},
+	"archives": {Name: "Archive", Icon: "📦"},
+	"other":  {Name: "Sonstiges", Icon: "📁"},
+}
+
+func getCategory(fileName string) Category {
 	ext := filepath.Ext(fileName)
 	switch ext {
-	case ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff":
-		return "Bilder"
+	case ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".webp":
+		return categories["images"]
 	case ".mp4", ".mkv", ".avi", ".mov", ".wmv":
-		return "Videos"
-	case ".mp3", ".wav", ".flac", ".aac":
-		return "Musik"
-	case ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx":
-		return "Dokumente"
-	case ".zip", ".rar", ".tar", ".gz":
-		return "Archive"
+		return categories["videos"]
+	case ".mp3", ".wav", ".flac", ".aac", ".ogg":
+		return categories["music"]
+	case ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".txt":
+		return categories["docs"]
+	case ".zip", ".rar", ".tar", ".gz", ".7z":
+		return categories["archives"]
 	default:
-		return "Sonstiges"
+		return categories["other"]
 	}
+}
+
+func getCategoryIcon(categoryName string) string {
+	for _, cat := range categories {
+		if cat.Name == categoryName {
+			return cat.Icon
+		}
+	}
+	return "📁"
 }
 
 func readFiles(dirPath string) ([]os.DirEntry, error) {

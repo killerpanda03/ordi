@@ -8,6 +8,22 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+type ScanCompleteMsg struct {
+	Files      []FilePreview
+	TotalFiles int
+	Err        error
+}
+
+type OrganizeProgressMsg struct {
+	Current int
+	Total   int
+}
+
+type OrganizeCompleteMsg struct {
+	Stats CategoryStats
+	Err   error
+}
+
 type ProcessSuccessMsg struct{ Path string }
 
 type ProcessFinishedMsg struct{}
@@ -20,9 +36,23 @@ type state int
 
 const (
 	stateInput state = iota
-	stateProcessing
+	stateScanning
+	statePreview
+	stateOrganizing
 	stateFinished
 )
+
+type FilePreview struct {
+	Name     string
+	Category string
+	Icon     string
+	Size     int64
+}
+
+type CategoryStats struct {
+	Categories map[string]int
+	TotalMoved int
+}
 
 type Model struct {
 	TextInput textinput.Model
@@ -32,6 +62,17 @@ type Model struct {
 	Err       error
 	Path      string
 	Result    string
+
+	// Preview state
+	files      []FilePreview
+	totalFiles int
+
+	// Progress state
+	progress int
+	total    int
+
+	// Results
+	stats CategoryStats
 }
 
 func New() Model {
