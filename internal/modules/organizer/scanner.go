@@ -6,7 +6,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-// scanFiles scans directory and returns preview of files with categories
 func scanFiles(dirPath string) tea.Cmd {
 	return func() tea.Msg {
 		files, err := os.ReadDir(dirPath)

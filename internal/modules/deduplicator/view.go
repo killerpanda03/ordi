@@ -9,34 +9,34 @@ import (
 
 var (
 	titleStyle = lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("205")).
-		MarginBottom(1)
+			Bold(true).
+			Foreground(lipgloss.Color("205")).
+			MarginBottom(1)
 
 	helpStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("241")).
-		MarginTop(1)
+			Foreground(lipgloss.Color("241")).
+			MarginTop(1)
 
 	errorStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("196")).
-		Bold(true)
+			Foreground(lipgloss.Color("196")).
+			Bold(true)
 
 	successStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("42")).
-		Bold(true)
+			Foreground(lipgloss.Color("42")).
+			Bold(true)
 
 	infoStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("86"))
+			Foreground(lipgloss.Color("86"))
 
 	groupStyle = lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("63")).
-		Padding(0, 1).
-		MarginBottom(1)
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(lipgloss.Color("63")).
+			Padding(0, 1).
+			MarginBottom(1)
 
 	selectedStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("170")).
-		Bold(true)
+			Foreground(lipgloss.Color("170")).
+			Bold(true)
 )
 
 func (m Model) View() string {
@@ -95,7 +95,7 @@ func (m Model) View() string {
 					break
 				}
 
-				groupContent := fmt.Sprintf("🔄 Exakte Duplikate - Gruppe %d (%s pro Datei)\n", i+1, formatBytes(group.Size))
+				groupContent := fmt.Sprintf(" Exakte Duplikate - Gruppe %d (%s pro Datei)\n", i+1, formatBytes(group.Size))
 				for j, file := range group.Files {
 					if j >= 3 {
 						groupContent += fmt.Sprintf("  ... und %d weitere\n", len(group.Files)-3)
@@ -119,7 +119,7 @@ func (m Model) View() string {
 						break
 					}
 
-					groupContent := fmt.Sprintf("🖼️  Ähnliche Bilder - Gruppe %d (%.1f%% ähnlich)\n", i+1, group.Similarity)
+					groupContent := fmt.Sprintf(" Ähnliche Bilder - Gruppe %d (%.1f%% ähnlich)\n", i+1, group.Similarity)
 					for j, file := range group.Files {
 						if j >= 3 {
 							groupContent += fmt.Sprintf("  ... und %d weitere\n", len(group.Files)-3)
@@ -137,7 +137,7 @@ func (m Model) View() string {
 		b.WriteString(helpStyle.Render("Enter = Bereinigung starten • Esc = Zurück zum Menü"))
 
 	case stateSelection:
-		b.WriteString(titleStyle.Render("🗑️  Duplikate zur Löschung auswählen"))
+		b.WriteString(titleStyle.Render("Duplikate zur Löschung auswählen"))
 		b.WriteString("\n\n")
 
 		totalToDelete := 0
@@ -146,7 +146,7 @@ func (m Model) View() string {
 		// Show all duplicate groups with selection checkboxes
 		currentItem := 0
 		for groupIdx, group := range m.duplicates {
-			b.WriteString(fmt.Sprintf("\n📁 Gruppe %d - %s pro Datei:\n", groupIdx+1, formatBytes(group.Size)))
+			b.WriteString(fmt.Sprintf("\nGruppe %d - %s pro Datei:\n", groupIdx+1, formatBytes(group.Size)))
 
 			// First file is always kept (not selectable)
 			b.WriteString(fmt.Sprintf("  [KEEP] %s\n", truncatePath(group.Files[0].Path, 70)))

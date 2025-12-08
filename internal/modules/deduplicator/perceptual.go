@@ -13,8 +13,6 @@ import (
 	"github.com/nfnt/resize"
 )
 
-// computeDHash computes a difference hash (dHash) for an image
-// dHash is good for finding similar images even if they're resized or slightly modified
 func computeDHash(imagePath string) (uint64, error) {
 	file, err := os.Open(imagePath)
 	if err != nil {
@@ -27,7 +25,6 @@ func computeDHash(imagePath string) (uint64, error) {
 		return 0, fmt.Errorf("failed to decode image: %w", err)
 	}
 
-	// Resize to 9x8 (we need 9 columns to compute 8 differences)
 	resized := resize.Resize(9, 8, img, resize.Lanczos3)
 
 	// Convert to grayscale and compute hash
@@ -57,8 +54,7 @@ func rgbaToGray(c color.Color) uint32 {
 	return (r*299 + g*587 + b*114) / 1000
 }
 
-// hammingDistance calculates the Hamming distance between two hashes
-// Lower distance means more similar images (0 = identical)
+
 func hammingDistance(hash1, hash2 uint64) int {
 	xor := hash1 ^ hash2
 	distance := 0
@@ -69,9 +65,7 @@ func hammingDistance(hash1, hash2 uint64) int {
 	return distance
 }
 
-// findSimilarImages finds groups of visually similar images
 func findSimilarImages(files []string, threshold int) ([]SimilarGroup, error) {
-	// Filter for image files only
 	var imageFiles []string
 	for _, file := range files {
 		if isImageFile(file) {
@@ -83,7 +77,6 @@ func findSimilarImages(files []string, threshold int) ([]SimilarGroup, error) {
 		return nil, nil
 	}
 
-	// Compute perceptual hashes for all images
 	type imageHash struct {
 		path string
 		hash uint64
@@ -94,7 +87,6 @@ func findSimilarImages(files []string, threshold int) ([]SimilarGroup, error) {
 	for _, imagePath := range imageFiles {
 		hash, err := computeDHash(imagePath)
 		if err != nil {
-			// Skip images that can't be processed
 			continue
 		}
 
@@ -110,7 +102,6 @@ func findSimilarImages(files []string, threshold int) ([]SimilarGroup, error) {
 		})
 	}
 
-	// Find similar groups
 	visited := make(map[int]bool)
 	var similarGroups []SimilarGroup
 
@@ -119,7 +110,6 @@ func findSimilarImages(files []string, threshold int) ([]SimilarGroup, error) {
 			continue
 		}
 
-		// Start a new group
 		var group []FileInfo
 		group = append(group, FileInfo{
 			Path: img1.path,
@@ -130,7 +120,6 @@ func findSimilarImages(files []string, threshold int) ([]SimilarGroup, error) {
 		totalDistance := 0
 		comparisons := 0
 
-		// Find all similar images
 		for j := i + 1; j < len(hashes); j++ {
 			if visited[j] {
 				continue
@@ -148,13 +137,12 @@ func findSimilarImages(files []string, threshold int) ([]SimilarGroup, error) {
 			}
 		}
 
-		// Only add groups with 2+ similar images
 		if len(group) > 1 {
 			avgDistance := 0
 			if comparisons > 0 {
 				avgDistance = totalDistance / comparisons
 			}
-			// Convert to similarity percentage (lower distance = higher similarity)
+
 			similarity := 100.0 - (float64(avgDistance)/64.0)*100.0
 
 			similarGroups = append(similarGroups, SimilarGroup{
@@ -167,7 +155,7 @@ func findSimilarImages(files []string, threshold int) ([]SimilarGroup, error) {
 	return similarGroups, nil
 }
 
-// isImageFile checks if a file is an image based on extension
+
 func isImageFile(path string) bool {
 	ext := filepath.Ext(path)
 	imageExts := map[string]bool{

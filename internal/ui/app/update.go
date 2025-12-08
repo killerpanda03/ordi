@@ -36,12 +36,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.deduplicator = deduplicator.New()
 				return m, m.deduplicator.Init()
 			case 2:
-				m.state = stateCompress
-				m.compressor = compressor.New()
-				return m, m.compressor.Init()
+				//TODO finish compressor module
+				// m.state = stateCompress
+				// m.compressor = compressor.New()
+				// return m, m.compressor.Init()
 			case 3:
-
-			case 4:
 				return m, tea.Quit
 			}
 		}
@@ -65,6 +64,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if _, ok := msg.(deduplicator.BackMsg); ok {
 			m.state = stateMenu
 			m.deduplicator = deduplicator.New()
+			return m, nil
+		}
+
+	case stateCompress:
+		newCompress, newCmd := m.compressor.Update(msg)
+		m.compressor = newCompress.(compressor.Model)
+		cmd = newCmd
+
+		if _, ok := msg.(compressor.BackMsg); ok {
+			m.state = stateMenu
+			m.compressor = compressor.New()
 			return m, nil
 		}
 	}

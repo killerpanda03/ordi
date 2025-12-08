@@ -49,7 +49,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if len(m.duplicates) > 0 {
 					m.state = stateSelection
 					m.cursor = 0
-					// Auto-select all duplicates except first in each group
+
 					for i := range m.duplicates {
 						for j := 1; j < len(m.duplicates[i].Files); j++ {
 							m.duplicates[i].Files[j].Selected = true

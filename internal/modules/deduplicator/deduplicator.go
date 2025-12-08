@@ -13,7 +13,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-// scanDirectory recursively scans a directory for files
+
 func scanDirectory(dirPath string) tea.Cmd {
 	return func() tea.Msg {
 		var files []string
@@ -36,10 +36,10 @@ func scanDirectory(dirPath string) tea.Cmd {
 	}
 }
 
-// findDuplicates finds duplicate files using parallel SHA256 hashing
+
 func findDuplicates(files []string) tea.Cmd {
 	return func() tea.Msg {
-		// Group files by size first (optimization)
+		
 		sizeGroups := make(map[int64][]string)
 		totalSize := int64(0)
 
@@ -53,7 +53,7 @@ func findDuplicates(files []string) tea.Cmd {
 			sizeGroups[size] = append(sizeGroups[size], file)
 		}
 
-		// Only hash files that have potential duplicates (same size)
+		
 		var filesToHash []string
 		for _, group := range sizeGroups {
 			if len(group) > 1 {
@@ -61,14 +61,14 @@ func findDuplicates(files []string) tea.Cmd {
 			}
 		}
 
-		// Parallel hashing with worker pool
+		
 		numWorkers := runtime.NumCPU()
 		jobs := make(chan string, len(filesToHash))
 		results := make(chan hashResult, len(filesToHash))
 
 		var wg sync.WaitGroup
 
-		// Start workers
+		
 		for w := 0; w < numWorkers; w++ {
 			wg.Add(1)
 			go func() {
@@ -85,7 +85,7 @@ func findDuplicates(files []string) tea.Cmd {
 			}()
 		}
 
-		// Send jobs
+		
 		go func() {
 			for _, file := range filesToHash {
 				jobs <- file
@@ -93,13 +93,13 @@ func findDuplicates(files []string) tea.Cmd {
 			close(jobs)
 		}()
 
-		// Wait for all workers to finish
+		
 		go func() {
 			wg.Wait()
 			close(results)
 		}()
 
-		// Collect results
+		
 		hashGroups := make(map[string][]FileInfo)
 		processed := 0
 
@@ -114,13 +114,13 @@ func findDuplicates(files []string) tea.Cmd {
 			})
 		}
 
-		// Find duplicate groups (hash with more than one file)
+		
 		var duplicates []DuplicateGroup
 		duplicateSize := int64(0)
 
 		for hash, group := range hashGroups {
 			if len(group) > 1 {
-				// Calculate wasted space (all copies except one)
+				
 				wastedSpace := group[0].Size * int64(len(group)-1)
 				duplicateSize += wastedSpace
 
@@ -132,12 +132,12 @@ func findDuplicates(files []string) tea.Cmd {
 			}
 		}
 
-		// Find similar images using perceptual hashing
-		// Threshold of 10 means up to 10 bits different (out of 64)
-		// This allows for minor variations while avoiding false positives
+		
+		
+		
 		similarImages, err := findSimilarImages(files, 10)
 		if err != nil {
-			// Log error but don't fail - similar images is optional
+			
 			similarImages = []SimilarGroup{}
 		}
 
@@ -157,7 +157,7 @@ type hashResult struct {
 	err  error
 }
 
-// hashFile computes SHA256 hash of a file
+
 func hashFile(path string) (string, int64, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -178,7 +178,7 @@ func hashFile(path string) (string, int64, error) {
 	return hex.EncodeToString(hasher.Sum(nil)), info.Size(), nil
 }
 
-// deleteDuplicates deletes selected duplicate files
+
 func deleteDuplicates(groups []DuplicateGroup) tea.Cmd {
 	return func() tea.Msg {
 		deletedCount := 0

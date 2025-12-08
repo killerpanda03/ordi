@@ -92,9 +92,8 @@ func (m Model) View() string {
 		b.WriteString(categoryStyle.Render(lipgloss.JoinVertical(lipgloss.Left, stats...)))
 		b.WriteString("\n\n")
 
-		// Show sample files (first 10)
+		// Show first 10 files
 		if len(m.files) > 0 {
-			b.WriteString("Beispiel-Dateien:\n")
 			maxShow := 10
 			if len(m.files) < maxShow {
 				maxShow = len(m.files)
